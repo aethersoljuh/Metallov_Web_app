@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    volumes:
+      - .:/var/www/html
+  db:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: Test123
+      MYSQL_DATABASE: vulnerable_db
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
