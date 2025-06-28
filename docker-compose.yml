@@ -1,17 +1,42 @@
 version: '3.8'
+
 services:
-  web:
+  webapp:
     build: .
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    volumes:
-      - .:/var/www/html
-  db:
-    image: mariadb:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: Test123
-      MYSQL_DATABASE: vulnerable_db
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    expose:
+      - 80
+    networks:
+      - app-network
+
+  open-appsec-agent:
+  image: openappsec/agent:latest
+  container_name: open-appsec-agent
+  ipc: host
+  environment:
+    - registered_server=NGINX
+    - AGENT_TOKEN=cp-262b35c7-16bd-4d89-a3d8-79be0def91c1f97cddca-5f3e-49cd-b6b1-a5516ca037b1
+  volumes:
+    - /home/user/Desktop/Metallov_web_app/openappsec/agent-config:/etc/cp/conf
+    - /home/user/Desktop/Metallov_web_app/openappsec/agent-data:/etc/cp/data
+    - /home/user/Desktop/Metallov_web_app/openappsec/agent-logs:/etc/cp/nano_agent
+  networks:
+    - custom_network
+
+  open-appsec-nginx:
+  image: openappsec/agent:latest
+  container_name: open-appsec-nginx
+  depends_on:
+    - web
+    - open-appsec-agent
+  ipc: host
+  ports:
+    - "80:80"
+  volumes:
+    - /home/user/Desktop/Metallov_web_app/nginx/metallov-nginx.conf:/etc/nginx/conf.d/default.conf
+  networks:
+    custom_network:
+      ipv4_address: 10.20.0.24
+
+networks:
+  app-network:
+    driver: bridge
